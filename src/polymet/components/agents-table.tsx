@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,16 +9,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PhoneIcon } from "lucide-react";
+import { PhoneIcon, TrashIcon } from "lucide-react";
 import { Agent } from "@/polymet/data/agents-data";
 import { Link, useNavigate } from "react-router-dom";
+import { DeleteConfirmationDialog } from "@/polymet/components/delete-confirmation-dialog";
+import { toast } from "@/polymet/components/sonner";
 
 interface AgentsTableProps {
   agents: Agent[];
+  onDeleteAgent?: (agentId: number) => void;
 }
 
-export function AgentsTable({ agents }: AgentsTableProps) {
+export function AgentsTable({ agents, onDeleteAgent }: AgentsTableProps) {
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [agentToDelete, setAgentToDelete] = useState<number | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -37,6 +42,20 @@ export function AgentsTable({ agents }: AgentsTableProps) {
     navigate(`/agents/${agentId}`);
   };
 
+  const handleDeleteClick = (e: React.MouseEvent, agentId: number) => {
+    e.stopPropagation(); // Prevent row click from triggering
+    setAgentToDelete(agentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (agentToDelete !== null && onDeleteAgent) {
+      onDeleteAgent(agentToDelete);
+    }
+    setDeleteDialogOpen(false);
+    setAgentToDelete(null);
+  };
+
   return (
     <div className="rounded-md border font-thin">
       <Table>
@@ -48,12 +67,13 @@ export function AgentsTable({ agents }: AgentsTableProps) {
             <TableHead className="text-right">Calls</TableHead>
             <TableHead>Last Modified</TableHead>
             <TableHead>Created</TableHead>
+            <TableHead className="w-[80px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {agents.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={7} className="h-24 text-center">
                 No agents found.
               </TableCell>
             </TableRow>
@@ -89,11 +109,30 @@ export function AgentsTable({ agents }: AgentsTableProps) {
                 <TableCell className="text-right">{agent.calls}</TableCell>
                 <TableCell>{agent.lastModified}</TableCell>
                 <TableCell>{agent.createdAt}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={(e) => handleDeleteClick(e, agent.id)}
+                    title="Delete agent"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Agent"
+        description="Are you sure you want to delete this agent? This action cannot be undone and all associated data will be permanently removed."
+      />
     </div>
   );
 }

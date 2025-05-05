@@ -11,13 +11,21 @@ import CreateAgentPage from "@/polymet/pages/create-agent";
 import AllAgentsPage from "@/polymet/pages/all-agents";
 import CallHistoryPage from "@/polymet/pages/call-history";
 import AgentDetailsPage from "@/polymet/pages/agent-details";
+import PlaygroundPage from "@/polymet/pages/playground";
+import LoginPage from "@/polymet/pages/login";
 import FontProvider from "@/polymet/components/font-provider";
+import { Toaster } from "@/polymet/components/sonner";
 
 export default function App() {
   return (
     <FontProvider>
       <Router>
+        <Toaster />
         <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected routes */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route
@@ -61,6 +69,15 @@ export default function App() {
             element={
               <LayoutWithRouter>
                 <CallHistoryPage />
+              </LayoutWithRouter>
+            }
+          />
+
+          <Route
+            path="/playground"
+            element={
+              <LayoutWithRouter>
+                <PlaygroundPage />
               </LayoutWithRouter>
             }
           />

@@ -5,8 +5,10 @@ import { PlusIcon } from "lucide-react";
 import { AgentFilter } from "@/polymet/components/agent-filter";
 import { AgentsTable } from "@/polymet/components/agents-table";
 import { AGENTS_DATA, Agent } from "@/polymet/data/agents-data";
+import { toast } from "@/polymet/components/sonner";
 
 export default function AllAgentsPage() {
+  const [agents, setAgents] = useState(AGENTS_DATA);
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -15,13 +17,13 @@ export default function AllAgentsPage() {
 
   // Extract unique agent types for the filter dropdown
   const agentTypes = useMemo(() => {
-    const types = new Set(AGENTS_DATA.map((agent) => agent.type));
+    const types = new Set(agents.map((agent) => agent.type));
     return Array.from(types);
-  }, []);
+  }, [agents]);
 
   // Filter agents based on search, status, and type
   const filteredAgents = useMemo(() => {
-    return AGENTS_DATA.filter((agent: Agent) => {
+    return agents.filter((agent: Agent) => {
       const matchesSearch =
         filters.search === "" ||
         agent.name.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -36,7 +38,7 @@ export default function AllAgentsPage() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [filters]);
+  }, [filters, agents]);
 
   const handleFilterChange = (newFilters: {
     search: string;
@@ -44,6 +46,11 @@ export default function AllAgentsPage() {
     type: string;
   }) => {
     setFilters(newFilters);
+  };
+
+  const handleDeleteAgent = (agentId: number) => {
+    setAgents(agents.filter((agent) => agent.id !== agentId));
+    toast.success("Agent deleted successfully");
   };
 
   return (
@@ -79,11 +86,14 @@ export default function AllAgentsPage() {
         <div className="mt-2">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredAgents.length} of {AGENTS_DATA.length} agents
+              Showing {filteredAgents.length} of {agents.length} agents
             </p>
           </div>
 
-          <AgentsTable agents={filteredAgents} />
+          <AgentsTable
+            agents={filteredAgents}
+            onDeleteAgent={handleDeleteAgent}
+          />
         </div>
       </div>
     </div>
